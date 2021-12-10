@@ -381,9 +381,6 @@ class TranslatorTest {
         Map<TermCode, Mapping> mappings = new HashMap<>();
         sourceMappingEntries.forEach(sourceMappingEntry -> mappings.put(sourceMappingEntry.getKey(), sourceMappingEntry));
 
-        TermCode mySearch = new TermCode("http://fhir.de/CodeSystem/bfarm/atc","M02AA", "buhu");
-        var tester = mappings.get(mySearch).getValueFhirPath();
-
         return mappings;
     }
 
