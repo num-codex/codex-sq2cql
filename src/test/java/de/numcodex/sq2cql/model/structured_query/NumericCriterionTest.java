@@ -34,8 +34,8 @@ class NumericCriterionTest {
             "https://www.netzwerk-universitaetsmedizin.de/fhir/CodeSystem/ecrf-parameter-codes", "ecrf");
 
     public static final MappingContext MAPPING_CONTEXT = MappingContext.of(Map.of(PLATELETS,
-            Mapping.of(PLATELETS, "Observation"), SOFA_SCORE,
-            Mapping.of(SOFA_SCORE, "Observation")), ConceptNode.of(), CODE_SYSTEM_ALIASES);
+            Mapping.of(PLATELETS, "Observation", ""), SOFA_SCORE,
+            Mapping.of(SOFA_SCORE, "Observation", "")), ConceptNode.of(), CODE_SYSTEM_ALIASES);
 
     public static final CodeSystemDefinition LOINC_CODE_SYSTEM_DEF = CodeSystemDefinition.of("loinc", "http://loinc.org");
     public static final CodeSystemDefinition ECRF_CODE_SYSTEM_DEF = CodeSystemDefinition.of("ecrf", "https://www.netzwerk-universitaetsmedizin.de/fhir/CodeSystem/ecrf-parameter-codes");
@@ -95,13 +95,13 @@ class NumericCriterionTest {
 
     @Test
     void toCql() {
-        Criterion criterion = NumericCriterion.of(PLATELETS, LESS_THAN, BigDecimal.valueOf(50), "g/dl");
+        Criterion criterion = NumericCriterion.of(PLATELETS, LESS_THAN, BigDecimal.valueOf(50), "g/dL", "value");
 
         Container<BooleanExpression> container = criterion.toCql(MAPPING_CONTEXT);
 
         assertEquals("""
                         exists from [Observation: Code '26515-7' from loinc] O
-                          where O.value as Quantity < 50 'g/dl'""",
+                          where O.value as Quantity < 50 'g/dL'""",
                 container.getExpression().map(e -> e.print(PrintContext.ZERO)).orElse(""));
         assertEquals(Set.of(LOINC_CODE_SYSTEM_DEF), container.getCodeSystemDefinitions());
     }

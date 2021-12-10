@@ -34,8 +34,8 @@ class ValueSetCriterionTest {
             "http://snomed.info/sct", "snomed",
             "http://hl7.org/fhir/administrative-gender", "gender");
 
-    public static final MappingContext MAPPING_CONTEXT = MappingContext.of(Map.of(COVID, Mapping.of(COVID, "Observation"),
-            SEX, Mapping.of(SEX, "Observation")), ConceptNode.of(), CODE_SYSTEM_ALIASES);
+    public static final MappingContext MAPPING_CONTEXT = MappingContext.of(Map.of(COVID, Mapping.of(COVID, "Observation", ""),
+            SEX, Mapping.of(SEX, "Observation", "")), ConceptNode.of(), CODE_SYSTEM_ALIASES);
 
     public static final CodeSystemDefinition LOINC_CODE_SYSTEM_DEF = CodeSystemDefinition.of("loinc",
             "http://loinc.org");
@@ -79,12 +79,12 @@ class ValueSetCriterionTest {
 
     @Test
     void toCql_NoConcept() {
-        assertThrows(IllegalArgumentException.class, () -> ValueSetCriterion.of(COVID));
+        assertThrows(IllegalArgumentException.class, () -> ValueSetCriterion.of(COVID, ""));
     }
 
     @Test
     void toCql_OneConcept() {
-        Criterion criterion = ValueSetCriterion.of(COVID, POSITIVE);
+        Criterion criterion = ValueSetCriterion.of(COVID, "",POSITIVE);
 
         Container<BooleanExpression> container = criterion.toCql(MAPPING_CONTEXT);
 
@@ -97,7 +97,7 @@ class ValueSetCriterionTest {
 
     @Test
     void toCql_TwoConcepts() {
-        Criterion criterion = ValueSetCriterion.of(SEX, MALE, FEMALE);
+        Criterion criterion = ValueSetCriterion.of(SEX, "",MALE, FEMALE);
 
         Container<BooleanExpression> container = criterion.toCql(MAPPING_CONTEXT);
 

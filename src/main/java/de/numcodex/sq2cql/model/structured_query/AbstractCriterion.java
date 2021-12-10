@@ -51,7 +51,7 @@ public abstract class AbstractCriterion implements Criterion {
     static Container<RetrieveExpression> retrieveExpr(MappingContext mappingContext, TermCode concept) {
         return codeSelector(mappingContext, concept).map(terminology -> {
             var mapping = mappingContext.getMapping(concept).orElseThrow(() -> new MappingNotFoundException(concept));
-            return RetrieveExpression.of(mapping.getResourceType(), terminology);
+            return RetrieveExpression.of(mapping.getResourceType(), terminology, mapping.getValueFhirPath(), mapping.getFhirPath());
         });
     }
 

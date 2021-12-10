@@ -34,7 +34,8 @@ public interface Criterion {
     @JsonCreator
     static Criterion create(@JsonProperty("termCode") TermCode termCode,
                             @JsonProperty("valueFilter") ObjectNode valueFilter,
-                            @JsonProperty("timeRestriction") ObjectNode timeRestriction) {
+                            @JsonProperty("timeRestriction") ObjectNode timeRestriction,
+                            @JsonProperty("valueFhirPath") String valueFhirPath){
         if (valueFilter == null) {
             return ConceptCriterion.of(termCode);
         }
@@ -47,7 +48,7 @@ public interface Criterion {
             if (unit == null) {
                 return NumericCriterion.of(termCode, comparator, value);
             } else {
-                return NumericCriterion.of(termCode, comparator, value, unit.get("code").asText());
+                return NumericCriterion.of(termCode, comparator, value, unit.get("code").asText(), valueFhirPath);
             }
         }
         if ("quantity-range".equals(type)) {
@@ -65,7 +66,7 @@ public interface Criterion {
             if (selectedConcepts == null) {
                 throw new IllegalArgumentException("Missing `selectedConcepts` key in concept criterion.");
             }
-            return ValueSetCriterion.of(termCode, StreamSupport.stream(selectedConcepts.spliterator(), false)
+            return ValueSetCriterion.of(termCode, "",StreamSupport.stream(selectedConcepts.spliterator(), false)
                     .map(TermCode::fromJsonNode).toArray(TermCode[]::new));
         }
         throw new IllegalArgumentException("unknown valueFilter type: " + type);

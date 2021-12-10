@@ -30,7 +30,7 @@ class MappingTest {
                 }
                 """, Mapping.class);
 
-        assertEquals(TC_1, mapping.getConcept());
+        assertEquals(TC_1, mapping.getKey());
         assertEquals("Observation", mapping.getResourceType());
     }
 
@@ -50,7 +50,7 @@ class MappingTest {
                 }
                 """, Mapping.class);
 
-        assertEquals(TC_1, mapping.getConcept());
+        assertEquals(TC_1, mapping.getKey());
         assertEquals("Observation", mapping.getResourceType());
     }
 
@@ -80,7 +80,7 @@ class MappingTest {
                 }
                 """, Mapping.class);
 
-        assertEquals(TC_1, mapping.getConcept());
+        assertEquals(TC_1, mapping.getKey());
         assertEquals("Observation", mapping.getResourceType());
         assertEquals(CodeModifier.of("status", "completed", "in-progress"), mapping.getFixedCriteria().get(0));
     }
@@ -114,7 +114,7 @@ class MappingTest {
                 }
                 """, Mapping.class);
 
-        assertEquals(TC_1, mapping.getConcept());
+        assertEquals(TC_1, mapping.getKey());
         assertEquals("Observation", mapping.getResourceType());
         assertEquals(CodingModifier.of("verificationStatus",
                 TermCode.of("http://terminology.hl7.org/CodeSystem/condition-ver-status", "confirmed", "Confirmed")),

@@ -37,11 +37,11 @@ public final class ValueSetCriterion extends AbstractCriterion {
      * @param selectedConcepts at least one selected value concept
      * @return the {@code ValueSetCriterion}
      */
-    public static ValueSetCriterion of(TermCode concept, TermCode... selectedConcepts) {
+    public static ValueSetCriterion of(TermCode concept, String fhirPath, TermCode... selectedConcepts) {
         if (selectedConcepts == null || selectedConcepts.length == 0) {
             throw new IllegalArgumentException("empty selected concepts");
         }
-        return new ValueSetCriterion(concept, List.of(selectedConcepts));
+        return new ValueSetCriterion(concept,List.of(selectedConcepts));
     }
 
     public List<TermCode> getSelectedConcepts() {
@@ -53,7 +53,7 @@ public final class ValueSetCriterion extends AbstractCriterion {
         return retrieveExpr(mappingContext, termCode).flatMap(retrieveExpr -> {
             var alias = AliasExpression.of(retrieveExpr.getResourceType().substring(0, 1));
             var sourceClause = SourceClause.of(retrieveExpr, alias);
-            var codingExpr = InvocationExpression.of(InvocationExpression.of(alias, "value"), "coding");
+            var codingExpr = InvocationExpression.of(InvocationExpression.of(alias, retrieveExpr.getFhirPath()), "coding");
             return whereExpr(mappingContext, codingExpr).map(whereExpr ->
                     ExistsExpression.of(QueryExpression.of(sourceClause, WhereClause.of(whereExpr))));
         });

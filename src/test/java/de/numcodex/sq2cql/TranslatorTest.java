@@ -1,6 +1,7 @@
 package de.numcodex.sq2cql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.numcodex.sq2cql.model.ConceptNode;
 import de.numcodex.sq2cql.model.Mapping;
@@ -13,9 +14,10 @@ import de.numcodex.sq2cql.model.structured_query.Criterion;
 import de.numcodex.sq2cql.model.structured_query.NumericCriterion;
 import de.numcodex.sq2cql.model.structured_query.StructuredQuery;
 import de.numcodex.sq2cql.model.structured_query.TranslationException;
-import de.numcodex.sq2cql.model.structured_query.ValueSetCriterion;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Objects;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -175,7 +177,7 @@ class TranslatorTest {
     @Test
     void toCQL_Usage_Documentation() {
         var c71_1 = TermCode.of("http://fhir.de/CodeSystem/dimdi/icd-10-gm", "C71.1", "Malignant neoplasm of brain");
-        var mappings = Map.of(c71_1, Mapping.of(c71_1, "Condition"));
+        var mappings = Map.of(c71_1, Mapping.of(c71_1, "Condition", ""));
         var conceptTree = ConceptNode.of(c71_1);
         var codeSystemAliases = Map.of("http://fhir.de/CodeSystem/dimdi/icd-10-gm", "icd10");
         var mappingContext = MappingContext.of(mappings, conceptTree, codeSystemAliases);
@@ -199,7 +201,7 @@ class TranslatorTest {
     @Disabled
     void toCQL_TimeContraint() {
         var c71_1 = TermCode.of("http://fhir.de/CodeSystem/dimdi/icd-10-gm", "C71.1", "Malignant neoplasm of brain");
-        var mappings = Map.of(c71_1, Mapping.of(c71_1, "Condition"));
+        var mappings = Map.of(c71_1, Mapping.of(c71_1, "Condition", ""));
         var conceptTree = ConceptNode.of(c71_1);
         var codeSystemAliases = Map.of("http://fhir.de/CodeSystem/dimdi/icd-10-gm", "icd10");
         var mappingContext = MappingContext.of(mappings, conceptTree, codeSystemAliases);
@@ -221,20 +223,28 @@ class TranslatorTest {
     }
 
     @Test
-    void toCQL_Test_Task1() {
-        var mappings = Map.of(PLATELETS, Mapping.of(PLATELETS, "Observation"),
-                C71_0, Mapping.of(C71_0, "Condition"),
-                C71_1, Mapping.of(C71_1, "Condition"),
-                TMZ, Mapping.of(TMZ, "MedicationStatement"));
+    void toCQL_Test_Task1() throws IOException {
+
+        Map<TermCode,Mapping> mapping = loadMapping();
+        /*
+        var mappings = Map.of(PLATELETS, Mapping.of(PLATELETS, "Observation", ""),
+                C71_0, Mapping.of(C71_0, "Condition", ""),
+                C71_1, Mapping.of(C71_1, "Condition", ""),
+                TMZ, Mapping.of(TMZ, "MedicationStatement", ""));#
+         */
         var conceptTree = ConceptNode.of(ROOT, ConceptNode.of(TMZ), ConceptNode.of(C71, ConceptNode.of(C71_0),
                 ConceptNode.of(C71_1)));
-        var mappingContext = MappingContext.of(mappings, conceptTree, CODE_SYSTEM_ALIASES);
+        var mappingContext = MappingContext.of(mapping, conceptTree, CODE_SYSTEM_ALIASES);
 
+        StructuredQuery structuredQuery = mapper.readValue(slurp("Task1.json"), StructuredQuery.class);
+
+        Library library = Translator.of(mappingContext).toCql(structuredQuery);
+        /*
         Library library = Translator.of(mappingContext).toCql(StructuredQuery.of(List.of(
                 List.of(ConceptCriterion.of(C71, CodingModifier.of("verificationStatus", CONFIRMED))),
-                List.of(NumericCriterion.of(PLATELETS, LESS_THAN, BigDecimal.valueOf(50), "g/dl")),
+                List.of(NumericCriterion.of(PLATELETS, LESS_THAN, BigDecimal.valueOf(50), "g/dL")),
                 List.of(ConceptCriterion.of(TMZ)))));
-
+         */
         assertEquals("""
                 library Retrieve
                 using FHIR version '4.0.0'
@@ -251,28 +261,38 @@ class TranslatorTest {
                   exists from [Condition: Code 'C71.1' from icd10] C
                     where C.verificationStatus.coding contains Code 'confirmed' from ver_status) and
                   exists from [Observation: Code '26515-7' from loinc] O
-                    where O.value as Quantity < 50 'g/dl' and
+                    where O.value as Quantity < 50 'g/dL' and
                   exists [MedicationStatement: Code 'L01AX03' from atc]
                 """, library.print(PrintContext.ZERO));
     }
 
     @Test
-    void toCQL_Test_Task2() {
-        var mappings = Map.of(PLATELETS, Mapping.of(PLATELETS, "Observation"),
-                HYPERTENSION, Mapping.of(HYPERTENSION, "Condition"),
-                SERUM, Mapping.of(SERUM, "Specimen"),
-                LIPID, Mapping.of(LIPID, "MedicationStatement"));
+    void toCQL_Test_Task2() throws IOException {
+
+        Map<TermCode,Mapping> mapping = loadMapping();
+        /*
+        var mappings = Map.of(PLATELETS, Mapping.of(PLATELETS, "Observation", ""),
+                HYPERTENSION, Mapping.of(HYPERTENSION, "Condition", ""),
+                SERUM, Mapping.of(SERUM, "Specimen", ""),
+                LIPID, Mapping.of(LIPID, "MedicationStatement", ""));
+         */
         var conceptTree = ConceptNode.of(ROOT, ConceptNode.of(HYPERTENSION), ConceptNode.of(SERUM),
                 ConceptNode.of(LIPID));
-        var mappingContext = MappingContext.of(mappings,
+        var mappingContext = MappingContext.of(mapping,
                 conceptTree,
                 CODE_SYSTEM_ALIASES);
 
+        StructuredQuery structuredQuery = mapper.readValue(slurp("Task2.json"), StructuredQuery.class);
+
+        Library library = Translator.of(mappingContext).toCql(structuredQuery);
+    /*
         Library library = Translator.of(mappingContext).toCql(StructuredQuery.of(List.of(
                 List.of(ConceptCriterion.of(HYPERTENSION, CodingModifier.of("verificationStatus", CONFIRMED))),
                 List.of(ConceptCriterion.of(SERUM))), List.of(
                 List.of(ConceptCriterion.of(LIPID)))));
 
+
+     */
         assertEquals("""
                 library Retrieve
                 using FHIR version '4.0.0'
@@ -299,19 +319,24 @@ class TranslatorTest {
 
     @Test
     void toCQL_GeccoTask2() throws IOException {
-        var mappings = Map.of(FRAILTY_SCORE, Mapping.of(FRAILTY_SCORE, "Observation"),
-                COPD, Mapping.of(COPD, "Condition", CodingModifier.of("verificationStatus", CONFIRMED)),
-                G47_31, Mapping.of(G47_31, "Condition", CodingModifier.of("verificationStatus", CONFIRMED)),
-                TOBACCO_SMOKING_STATUS, Mapping.of(TOBACCO_SMOKING_STATUS, "Observation"));
+
+        Map<TermCode,Mapping> mapping = loadMapping();
+        /*
+        var mappings = Map.of(FRAILTY_SCORE, Mapping.of(FRAILTY_SCORE, "Observation", ""),
+                COPD, Mapping.of(COPD, "Condition", "",CodingModifier.of("verificationStatus", CONFIRMED)),
+                G47_31, Mapping.of(G47_31, "Condition", "",CodingModifier.of("verificationStatus", CONFIRMED)),
+                TOBACCO_SMOKING_STATUS, Mapping.of(TOBACCO_SMOKING_STATUS, "Observation", ""));
+
+         */
         var conceptTree = ConceptNode.of(ROOT, ConceptNode.of(COPD), ConceptNode.of(G47_31));
-        var mappingContext = MappingContext.of(mappings,
+        var mappingContext = MappingContext.of(mapping,
                 conceptTree,
                 CODE_SYSTEM_ALIASES);
 
         StructuredQuery structuredQuery = mapper.readValue(slurp("GeccoTask2.json"), StructuredQuery.class);
 
         Library library = Translator.of(mappingContext).toCql(structuredQuery);
-
+        var test = library.print(PrintContext.ZERO);
         assertEquals("""
                 library Retrieve
                 using FHIR version '4.0.0'
@@ -340,6 +365,26 @@ class TranslatorTest {
                   Inclusion and
                   not Exclusion
                 """, library.print(PrintContext.ZERO));
+    }
+
+    @Test
+    void toCQL_readMapping() throws IOException {
+        Map<TermCode, Mapping> map = loadMapping();
+    }
+
+    private Map<TermCode,Mapping> loadMapping() throws IOException {
+        InputStream inputStream = TranslatorTest.class.getResourceAsStream("codex-term-code-mapping.json");
+
+        ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        List<Mapping> sourceMappingEntries = objectMapper.readValue(inputStream, new TypeReference<>() {});
+
+        Map<TermCode, Mapping> mappings = new HashMap<>();
+        sourceMappingEntries.forEach(sourceMappingEntry -> mappings.put(sourceMappingEntry.getKey(), sourceMappingEntry));
+
+        TermCode mySearch = new TermCode("http://fhir.de/CodeSystem/bfarm/atc","M02AA", "buhu");
+        var tester = mappings.get(mySearch).getValueFhirPath();
+
+        return mappings;
     }
 
     private static String slurp(String name) throws IOException {

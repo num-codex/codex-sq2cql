@@ -38,6 +38,11 @@ public final class CodingModifier extends AbstractModifier {
     }
 
     @Override
+    public String getFhirPath() {
+        return path;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

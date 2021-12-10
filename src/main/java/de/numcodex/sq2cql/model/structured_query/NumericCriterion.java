@@ -33,7 +33,7 @@ public final class NumericCriterion extends AbstractCriterion {
     private final BigDecimal value;
     private final String unit;
 
-    private NumericCriterion(TermCode concept, Comparator comparator, BigDecimal value, String unit) {
+    private NumericCriterion(TermCode concept, Comparator comparator, BigDecimal value, String unit, String valueFhirPath) {
         super(concept, List.of());
         this.value = Objects.requireNonNull(value);
         this.comparator = Objects.requireNonNull(comparator);
@@ -49,7 +49,7 @@ public final class NumericCriterion extends AbstractCriterion {
      * @return the {@code NumericCriterion}
      */
     public static NumericCriterion of(TermCode concept, Comparator comparator, BigDecimal value) {
-        return new NumericCriterion(concept, comparator, value, null);
+        return new NumericCriterion(concept, comparator, value, null, "");
     }
 
     /**
@@ -61,8 +61,8 @@ public final class NumericCriterion extends AbstractCriterion {
      * @param unit       the unit of the value
      * @return the {@code NumericCriterion}
      */
-    public static NumericCriterion of(TermCode concept, Comparator comparator, BigDecimal value, String unit) {
-        return new NumericCriterion(concept, comparator, value, Objects.requireNonNull(unit));
+    public static NumericCriterion of(TermCode concept, Comparator comparator, BigDecimal value, String unit, String valueFhirPath) {
+        return new NumericCriterion(concept, comparator, value, Objects.requireNonNull(unit), valueFhirPath);
     }
 
     public Comparator getComparator() {
@@ -81,7 +81,7 @@ public final class NumericCriterion extends AbstractCriterion {
         return retrieveExpr(mappingContext, termCode).map(retrieveExpr -> {
             var alias = AliasExpression.of(retrieveExpr.getResourceType().substring(0, 1));
             var sourceClause = SourceClause.of(retrieveExpr, alias);
-            var castExpr = TypeExpression.of(InvocationExpression.of(alias, "value"), "Quantity");
+            var castExpr = TypeExpression.of(InvocationExpression.of(alias, retrieveExpr.getValueFhirPath()), "Quantity");
             var whereExpression = ComparatorExpression.of(castExpr, comparator, quantityExpression(value, unit));
             var queryExpr = QueryExpression.of(sourceClause, WhereClause.of(whereExpression));
             return ExistsExpression.of(queryExpr);

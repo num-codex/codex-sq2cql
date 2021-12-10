@@ -40,4 +40,6 @@ public interface Modifier {
     }
 
     Container<BooleanExpression> expression(MappingContext mappingContext, Expression alias);
+
+    String getFhirPath();
 }

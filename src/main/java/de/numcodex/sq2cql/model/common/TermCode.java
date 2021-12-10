@@ -20,7 +20,7 @@ public final class TermCode {
     private final String code;
     private final String display;
 
-    private TermCode(String system, String code, String display) {
+    public TermCode(String system, String code, String display) {
         this.system = Objects.requireNonNull(system);
         this.code = Objects.requireNonNull(code);
         this.display = Objects.requireNonNull(display);
